@@ -13,7 +13,7 @@ pipeline {
                 sh '''mvn --version
                       touch file1.txt
                       pwd
-                      ls /home
+                      ls -a /home
                       '''
                 
             }
