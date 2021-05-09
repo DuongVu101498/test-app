@@ -21,7 +21,7 @@ pipeline {
                 sh ''' ls
                        ls -a target
                        $HOME
-                       ls -a $HOME/.m2'''
+                       '''
             }
         }
     }
