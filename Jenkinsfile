@@ -1,10 +1,31 @@
 pipeline {
-    agent{ label 'linux'}
+    agent none
     stages {
-        stage('Test') {
-             steps {
-               sh 'docker run hello-world'
-             }
+        stage('Build') {
+            agent {
+                docker {
+                     image 'maven:3.8.1-adoptopenjdk-11'
+                     args '-v $HOME/.m2:/root/.m2'
+                     reuseNode true
+                }
+            }
+            steps {
+                sh '''mvn --version
+                      ls'''
+                
+            }
+        }
+        stage('window test') {
+            agent { label 'window'}
+            steps {
+                bat 'mvn --version'
+            }
+        }
+        stage('linux test') {
+            agent { label 'linux'}
+            steps {
+                sh '''ls'''
+            }
         }
     }
 }
