@@ -18,7 +18,8 @@ pipeline {
         stage('linux test') {
             agent { label 'linux'}
             steps {
-                sh '''ls -a $HOME/.m2'''
+                sh ''' ls
+                       ls -a $HOME/.m2'''
             }
         }
     }
