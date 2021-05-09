@@ -19,7 +19,9 @@ pipeline {
             agent { label 'linux'}
             steps {
                 sh ''' ls
-                       ls -a target'''
+                       ls -a target
+                       $HOME
+                       ls -a $HOME/.m2'''
             }
         }
     }
