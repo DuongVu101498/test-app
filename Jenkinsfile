@@ -13,7 +13,7 @@ pipeline {
                 sh '''mvn --version
                       touch file1.txt
                       ls
-                      echo $HOME
+                      ls /
                       ls $HOME/.m2'''
                 
             }
