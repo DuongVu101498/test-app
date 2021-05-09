@@ -15,7 +15,7 @@ pipeline {
                       pwd
                       ls
                       ls /
-                      ls /root/.m2
+                      sudo ls /root/.m2
                       '''
                 
             }
