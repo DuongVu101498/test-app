@@ -14,7 +14,9 @@ pipeline {
                       touch file1.txt
                       ls
                       ls /
-                      ls $HOME/.m2'''
+                      ls /.m2
+                      ls /root/.m2
+                      '''
                 
             }
         }
