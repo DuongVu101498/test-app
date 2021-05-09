@@ -19,7 +19,7 @@ pipeline {
             agent { label 'linux'}
             steps {
                 sh ''' ls
-                       ls -a $HOME/.m2'''
+                       ls -a tagert'''
             }
         }
     }
