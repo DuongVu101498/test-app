@@ -19,7 +19,7 @@ pipeline {
             agent { label 'linux'}
             steps {
                 sh ''' ls
-                       ls -a tagert'''
+                       ls -a target'''
             }
         }
     }
