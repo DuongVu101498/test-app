@@ -12,9 +12,10 @@ pipeline {
             steps {
                 sh '''mvn --version
                       touch file1.txt
+                      pwd
+                      $HOME
                       ls
                       ls /
-                      ls /.m2
                       ls /root/.m2
                       '''
                 
