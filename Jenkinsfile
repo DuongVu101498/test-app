@@ -10,24 +10,15 @@ pipeline {
                 }
             }
             steps {
-                sh '''mvn --version
-                      touch file1.txt
-                      pwd
-                      #ls -a /root
+                sh '''mvn clean package
                       '''
                 
-            }
-        }
-        stage('window test') {
-            agent { label 'window'}
-            steps {
-                bat 'mvn --version'
             }
         }
         stage('linux test') {
             agent { label 'linux'}
             steps {
-                sh '''ls'''
+                sh '''ls -a $HOME/.m2'''
             }
         }
     }
