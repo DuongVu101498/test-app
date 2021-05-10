@@ -41,8 +41,9 @@ pipeline {
                           ls -a $HOME/.m2
                           '''
                      }
-             }
+              }
            }
         }
     }
+}
 }
