@@ -20,7 +20,7 @@ pipeline {
              stage("Build Docker image") {
                 steps {
                   script {
-                    docker_image = docker.build("duongvt16/netty-app:${env.BUILD_ID}"")
+                    docker_image = docker.build("duongvt16/netty-app:${env.BUILD_ID}")
                   }
                 }
              }
