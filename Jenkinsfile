@@ -1,7 +1,7 @@
 pipeline {
     agent none
     stages{
-        stage{
+        stage('run on linux'){
             agent {label 'linux'}
             stages {
               stage('Build') {
