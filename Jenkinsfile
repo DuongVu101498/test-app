@@ -27,12 +27,11 @@ pipeline {
 
              stage("Push images") {
                 steps {
-                   script {
-               
+                    script {
                       withDockerRegistry(credentialsId: 'docker-hub-secret', url: "https://hub.docker.com") {
                           docker_image.push("test")
                           docker_image.push(${env.BUILD_ID})
-                   }
+                      }}
                 }
               }
               stage('linux test') {
@@ -46,4 +45,4 @@ pipeline {
         }
     }
 }
-}
+
