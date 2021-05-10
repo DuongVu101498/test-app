@@ -5,7 +5,7 @@ pipeline {
             agent {
                 docker {
                      image 'maven:3.8.1-adoptopenjdk-15'
-                     args '-v $HOME/.m2:/root/.m2'
+                     args '-v pwd/.m2:/root/.m2'
                      reuseNode true
                 }
             }
@@ -20,8 +20,8 @@ pipeline {
             steps {
                 sh ''' ls
                        ls -a target
-                       $HOME
-                       '''
+                       ls -a pwd
+                       ls -a pwd/.m2'''
             }
         }
     }
