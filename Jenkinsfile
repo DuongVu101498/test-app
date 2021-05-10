@@ -19,10 +19,8 @@ pipeline {
             agent { label 'linux'}
             steps {
                 sh ''' ls
-                       ls -a target
-                       ls -a /home/duong
                        ls -a $HOME/.m2
-                       $HOME'''
+                       '''
             }
         }
     }
