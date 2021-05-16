@@ -69,7 +69,7 @@ pipeline {
                           docker_image.push('latest')
                       }
                     }
-                    sh ''' cat "k8s/production-deploy.yaml" | sed "s/{{BUILD_ID}}/$BUILD_ID/g" | kubectl apply -n production -f -
+                    sh ''' cat "k8s/production-deploy.yaml" | sed "s/{{BUILD_ID}}/$BUILD_ID/g" | kubectl apply -n production --record=true -f -
                          kubectl rollout status deployment.apps/netty -n production
                      '''
                   }
