@@ -40,7 +40,7 @@ pipeline {
               stage('Staging deploy'){
                   steps {
                       sh ''' cat "k8s/staging-deploy.yaml" | sed "s/{{BUILD_ID}}/$BUILD_ID/g" | kubectl apply -n staging -f -
-                             kubectl rollout status deployment.apps/netty -n staging
+                             kubectl rollout status deployment.apps/netty -n staging --timeout=20s
                           '''
                   }
               }
@@ -70,7 +70,7 @@ pipeline {
                       }
                     }
                     sh ''' cat "k8s/production-deploy.yaml" | sed "s/{{BUILD_ID}}/$BUILD_ID/g" | kubectl apply -n production --record=true -f -
-                         kubectl rollout status deployment.apps/netty -n production
+                         kubectl rollout status deployment.apps/netty -n production --timeout=20s
                      '''
                   }
               }
