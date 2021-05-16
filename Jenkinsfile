@@ -31,15 +31,31 @@ pipeline {
                       withDockerRegistry(credentialsId: 'docker-hub-secret') {
                           docker_image.push("test-${env.BUILD_ID}")
                           docker_image.push('latest')
-                      }}
+                      }
+                    }
                 }
               }
-              stage('linux test') {
-               steps {
-                   sh ''' ls
-                          ls -a $HOME/.m2
-                          '''
-                     }
+              stage('Staging deploy'){
+                  sh ''' cat "k8s/staging-deploy.yaml" | sed "s/{{BUILD_ID}}/$BUILD_ID/g" | kubectl apply -f -
+                         kubectl rollout status deployment.apps/netty
+                     '''
+              }
+              # run on window
+              stage('Load testing'){
+                 agent {label 'window'}
+                  steps {
+                          build job: 'load-test'
+                        }
+                  post{
+                      always{
+                          node('linux'){
+                              sh ''' kubectl delete service/netty deployment.apps/netty '''
+                          }
+                      }
+                  }
+              }
+              stage('Staging deploy'){
+                  sh ''' echo deploy'''
               }
            }
         }
