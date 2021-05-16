@@ -1,5 +1,8 @@
 pipeline {
     agent none
+    environment {
+                DEPLOY_TO_PRODUCTION = 'true'
+            }
     stages{
         stage('run on linux'){
             agent {label 'linux'}
@@ -30,7 +33,6 @@ pipeline {
                     script {
                       withDockerRegistry(credentialsId: 'docker-hub-secret') {
                           docker_image.push("test-${env.BUILD_ID}")
-                          docker_image.push('latest')
                       }
                     }
                 }
@@ -54,10 +56,48 @@ pipeline {
                       }
                   }
               }
-              stage('Staging deploy'){
-                  sh ''' echo deploy'''
+              stage('Production deploy'){
+                  when{
+                      beforeOptions true
+                      environment name: 'DEPLOY_TO_PRODUCTION', value: 'true'
+                  }
+                  steps {
+                    script {
+                      withDockerRegistry(credentialsId: 'docker-hub-secret') {
+                          docker_image.push("production-${env.BUILD_ID}")
+                          docker_image.push('latest')
+                      }
+                    }
+                    sh ''' cat "k8s/production-deploy.yaml" | sed "s/{{BUILD_ID}}/$BUILD_ID/g" | kubectl apply -f -
+                         kubectl rollout status deployment.apps/netty
+                     '''
+                  }
               }
+                
            }
+        }
+    }
+     post {
+        always {
+            node('linux'){
+               echo 'One way or another, I have finished'
+               deleteDir() /* clean up our workspace */
+            }
+        }
+        success {
+            node('linux'){
+               echo 'I succeeded!'
+            }
+        }
+        unstable {
+            node('linux'){
+               echo 'I am unstable :/'
+            }
+        }
+        failure {
+            node('linux'){
+               echo 'I failed :('
+            }
         }
     }
 }
