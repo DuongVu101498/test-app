@@ -12,6 +12,7 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
@@ -38,13 +39,13 @@ public class HttpSnoopServerHandler extends SimpleChannelInboundHandler<Object> 
 	private HttpRequest request;
 	/** Buffer that stores the response content */
 	private final StringBuilder buf = new StringBuilder();
-	
+	private boolean get_css =false;
 	
 	@Override
 	public void channelReadComplete(ChannelHandlerContext ctx) {
 		ctx.flush();
 	}
-
+    /*
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
 		
@@ -71,7 +72,7 @@ public class HttpSnoopServerHandler extends SimpleChannelInboundHandler<Object> 
 				buf.append("Default message");
 			}
 			buf.append("\r\n\r\n");
-			/*HttpHeaders headers = request.headers();
+			HttpHeaders headers = request.headers();
 			if (!headers.isEmpty()) {
 				for (Map.Entry<String, String> h : headers) {
 					CharSequence key = h.getKey();
@@ -79,7 +80,7 @@ public class HttpSnoopServerHandler extends SimpleChannelInboundHandler<Object> 
 					buf.append("HEADER: ").append(key).append(" = ").append(value).append("\r\n");
 				}
 				buf.append("\r\n");
-			}*/
+			}
 
 			QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.uri());
 			Map<String, List<String>> params = queryStringDecoder.parameters();
@@ -130,7 +131,119 @@ public class HttpSnoopServerHandler extends SimpleChannelInboundHandler<Object> 
 			}
 		}
 	}
+*/ 
+	@Override
+	protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
+		
+		if (msg instanceof HttpRequest) {
+			HttpRequest request = this.request = (HttpRequest) msg;
+			
+			if (HttpUtil.is100ContinueExpected(request)) {
+				send100Continue(ctx);
+			}
 
+			buf.setLength(0);
+			if (request.uri().equals("/styles.css"))
+			{
+				get_css =true;
+				buf.append("h1 {\r\n"
+						+ "  color: blue;\r\n"
+						+ "  font-family: verdana;\r\n"
+						+ "  font-size: 300%;\r\n"
+						+ "}\r\n"
+						+ "p {\r\n"
+						+ "  color: red;\r\n"
+						+ "  font-family: courier;\r\n"
+						+ "  font-size: 160%;\r\n"
+						+ "}");
+			} else
+			{
+			get_css =false;
+			buf.append("<!DOCTYPE html>\r\n"
+					+ "<html>\r\n"
+					+ "<head>\r\n"
+					+ "  <link rel=\"stylesheet\" href=\"http://127.0.0.1:8081/styles.css\">\r\n"
+					+ "</head>\r\n"
+					+ "<body>");
+			buf.append("<h1>NETTY SERVER</h1>");
+			buf.append("<p>===================================</p>\r\n");
+
+			buf.append("<p>VERSION: ").append(request.protocolVersion()).append("</p> \r\n");
+			buf.append("<p>HOSTNAME: ").append(request.headers().get(HttpHeaderNames.HOST, "unknown")).append("</p>\r\n");
+			buf.append("<p>REQUEST_URI: ").append(request.uri()).append("</p>\r\n\r\n");
+			buf.append("<p>MESSAGE RECEIVED: ");
+			if (request.uri().equals("/hello"))
+			{
+				buf.append(getHello()+"</p>");
+			} else
+			{
+				buf.append("Default message </p>");
+			}
+			buf.append("\r\n\r\n");
+			HttpHeaders headers = request.headers();
+			if (!headers.isEmpty()) {
+				for (Map.Entry<String, String> h : headers) {
+					CharSequence key = h.getKey();
+					CharSequence value = h.getValue();
+					buf.append("<p>HEADER: ").append(key).append(" = ").append(value).append("</p>\r\n");
+				}
+				buf.append("\r\n");
+			}
+
+			QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.uri());
+			Map<String, List<String>> params = queryStringDecoder.parameters();
+			if (!params.isEmpty()) {
+				for (Entry<String, List<String>> p : params.entrySet()) {
+					String key = p.getKey();
+					List<String> vals = p.getValue();
+					for (String val : vals) {
+						buf.append("<p> PARAM: ").append(key).append(" = ").append(val).append("</p>\r\n");
+					}
+				}
+				buf.append("\r\n");
+			}
+			appendDecoderResult(buf, request);
+		}
+		}
+		if (msg instanceof HttpContent) {
+			HttpContent httpContent = (HttpContent) msg;
+
+			ByteBuf content = httpContent.content();
+			if (!get_css)
+			{
+			if (content.isReadable()) {
+				buf.append("<p> CONTENT: ");
+				buf.append(content.toString(CharsetUtil.UTF_8));
+				buf.append("</p> \r\n");
+				appendDecoderResult(buf, request);
+			}
+			}
+			if (msg instanceof LastHttpContent) {
+				LastHttpContent trailer = (LastHttpContent) msg;
+				if (!get_css)
+				{
+				buf.append("<p>END OF CONTENT</p>\r\n");
+				if (!trailer.trailingHeaders().isEmpty()) {
+					buf.append("\r\n");
+					for (CharSequence name : trailer.trailingHeaders().names()) {
+						for (CharSequence value : trailer.trailingHeaders().getAll(name)) {
+							buf.append("<p>TRAILING HEADER: ");
+							buf.append(name).append(" = ").append(value).append("</p>\r\n");
+						}
+					}
+					buf.append("\r\n");
+					buf.append("</body>\r\n"
+							+ "</html>");
+				}
+				}
+				if (!writeResponse(trailer, ctx, get_css)) {
+					// If keep-alive is off, close the connection once the content is fully written.
+					ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+				}
+			}
+		}
+		
+	}
 	private static void appendDecoderResult(StringBuilder buf, HttpObject o) {
 		DecoderResult result = o.decoderResult();
 		if (result.isSuccess()) {
@@ -145,7 +258,7 @@ public class HttpSnoopServerHandler extends SimpleChannelInboundHandler<Object> 
 		return "Hello world !";
 	}
 	//private boolean writeResponse(HttpObject currentObj, ChannelHandlerContext ctx) {
-	private boolean writeResponse(HttpObject currentObj, ChannelHandlerContext ctx) {
+	private boolean writeResponse(HttpObject currentObj, ChannelHandlerContext ctx, boolean css) {
 		// Decide whether to close the connection or not.
 		boolean keepAlive = HttpUtil.isKeepAlive(request);
 		// Build the response object.
@@ -153,8 +266,12 @@ public class HttpSnoopServerHandler extends SimpleChannelInboundHandler<Object> 
 				currentObj.decoderResult().isSuccess() ? OK : BAD_REQUEST,
 				Unpooled.copiedBuffer(buf.toString(), CharsetUtil.UTF_8));
 
-		response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
-
+		//response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
+		if (css) {
+			response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/css; charset=UTF-8");
+		} else {
+		response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
+		}
 		if (keepAlive) {
 			// Add 'Content-Length' header only for a keep-alive connection.
 			response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
