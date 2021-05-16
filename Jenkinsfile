@@ -47,7 +47,7 @@ pipeline {
               stage('Load testing'){
                  agent {label 'window'}
                   steps {
-                          build job: 'load-test'
+                          build job: 'load-test-2'
                         }
                   post{
                       always{
