@@ -76,7 +76,7 @@ public class HttpSnoopServerHandler extends SimpleChannelInboundHandler<Object> 
 			buf.append("<!DOCTYPE html>\r\n"
 					+ "<html>\r\n"
 					+ "<head>\r\n"
-					+ "  <link rel=\"stylesheet\" href=\"http://127.0.0.1:8081/styles.css\">\r\n"
+					+ "  <link rel=\"stylesheet\" href=\"http://"+request.headers().get(HttpHeaderNames.HOST, "unknown")+"/styles.css\">\r\n"
 					+ "</head>\r\n"
 					+ "<body>");
 			buf.append("<h1>NETTY SERVER</h1>");
