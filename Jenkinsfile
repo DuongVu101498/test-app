@@ -71,6 +71,7 @@ pipeline {
                     }
                     sh ''' cat "k8s/production-deploy.yaml" | sed "s/{{BUILD_ID}}/$BUILD_ID/g" | kubectl apply -n production -f -
                          kubectl rollout status deployment.apps/netty -n production
+                         kubectl describe deployment.apps/netty -n production
                      '''
                   }
               }
