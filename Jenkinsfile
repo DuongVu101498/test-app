@@ -39,8 +39,8 @@ pipeline {
               }
               stage('Staging deploy'){
                   steps {
-                      sh ''' cat "k8s/staging-deploy.yaml" | sed "s/{{BUILD_ID}}/$BUILD_ID/g" | kubectl apply -f -
-                             kubectl rollout status deployment.apps/netty
+                      sh ''' cat "k8s/staging-deploy.yaml" | sed "s/{{BUILD_ID}}/$BUILD_ID/g" | kubectl apply -n staging -f -
+                             kubectl rollout status deployment.apps/netty -n staging
                           '''
                   }
               }
@@ -52,7 +52,7 @@ pipeline {
                   post{
                       always{
                           node('linux'){
-                              sh ''' kubectl delete service/netty deployment.apps/netty '''
+                              sh ''' kubectl delete service/netty deployment.apps/netty -n staging'''
                           }
                       }
                   }
@@ -69,8 +69,8 @@ pipeline {
                           docker_image.push('latest')
                       }
                     }
-                    sh ''' cat "k8s/production-deploy.yaml" | sed "s/{{BUILD_ID}}/$BUILD_ID/g" | kubectl apply -f -
-                         kubectl rollout status deployment.apps/netty
+                    sh ''' cat "k8s/production-deploy.yaml" | sed "s/{{BUILD_ID}}/$BUILD_ID/g" | kubectl apply -n production -f -
+                         kubectl rollout status deployment.apps/netty -n production
                      '''
                   }
               }
