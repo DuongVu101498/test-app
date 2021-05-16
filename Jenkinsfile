@@ -42,7 +42,6 @@ pipeline {
                          kubectl rollout status deployment.apps/netty
                      '''
               }
-              # run on window
               stage('Load testing'){
                  agent {label 'window'}
                   steps {
