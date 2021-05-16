@@ -38,9 +38,11 @@ pipeline {
                 }
               }
               stage('Staging deploy'){
-                  sh ''' cat "k8s/staging-deploy.yaml" | sed "s/{{BUILD_ID}}/$BUILD_ID/g" | kubectl apply -f -
-                         kubectl rollout status deployment.apps/netty
-                     '''
+                  steps {
+                      sh ''' cat "k8s/staging-deploy.yaml" | sed "s/{{BUILD_ID}}/$BUILD_ID/g" | kubectl apply -f -
+                             kubectl rollout status deployment.apps/netty
+                          '''
+                  }
               }
               stage('Load testing'){
                  agent {label 'window'}
